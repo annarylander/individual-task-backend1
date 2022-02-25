@@ -2,12 +2,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const { User } = require("./models/user")
+const jwt = require("./models/user")
 
 const app = express()
 const PORT = 8000;
+const JWT_SECRET = "jksjfkafld"
 
-app.use(express.urlencoded());
-
+// app.use(express.urlencoded());
+app.use(express.json());
 
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
@@ -30,7 +32,6 @@ app.use(function (req, res, next) {
   });
 
 
-
 app.get('/', async (req, res) => {
        const users = await User.find().exec()
        res.render("index.ejs", { users })
@@ -46,23 +47,33 @@ app.get("/people", (req, res) => {
    });
 
 
-//skapa konto
-app.post("/users", async (req, res, next) => {
+//create account
+app.post("/users", async (req, res) => {
+  const {username, password} = req.body
+  const user = new User({username, password})
+  await user.save()
+  res.json({username})
+})
 
-    const user = new User(req.body);
-    try { 
-        await user.save();
-        res.redirect("/");
-    } catch (error) {
-        next(error)
-    }
-    
-    
-    //res.render("index.ejs")
-    
-});
+//Log-in
+// app.post("/tokens", async (req, res) => {
+//   const {username, password} = req.body
+//   const user = await User.login(username, password)
+//     if(user) {
+//       const userId = user._id.toString()
+//       const token = jwt.sign(
+//         {userId, username: user.username},
+//         JWT_SECRET,
+//         {expiresIn: 120, subject: userId}
+//       )
+//       res.json({token})
+//     } else {
+//       res.sendStatus(401)
+//     }
+// } )
 
-//användarprofil
+
+//user-profile
 app.get("/profile/:userId", async (req, res) => {
     const userId = req.params.userId;
     const user = await User.findOne({_id: userId});
@@ -70,15 +81,14 @@ app.get("/profile/:userId", async (req, res) => {
 });
 
 
-// skapa inlägg
+// create post
 app.get("/post", (req, res) => {
     res.render("post.ejs")
 });
 
 
-//anslut till databas
-mongoose.connect("mongodb://localhost/backend1");
+//connect to database
+mongoose.connect("mongodb://localhost/micro-blog");
 app.listen(PORT, () => {
   console.log(`Started Express server on port ${PORT}`);
 });
-

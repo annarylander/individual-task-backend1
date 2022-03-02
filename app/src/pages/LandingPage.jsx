@@ -1,7 +1,14 @@
 import React from 'react'
+import UserCreate from '../components/UserCreate'
+import Login from './Login'
 
 export default function LandingPage() {
   return (
-    <div>LandingPage</div>
+    <div>
+      
+      <UserCreate/>
+      <Login />
+      
+    </div>
   )
 }

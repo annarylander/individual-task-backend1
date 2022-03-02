@@ -2,7 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const { User } = require("./models/user")
-const jwt = require("./models/user")
+const { Message } = require("./models/message")
+const jwt = require("jsonwebtoken");
 
 const app = express()
 const PORT = 8000;
@@ -24,12 +25,22 @@ app.use(function (req, res, next) {
     // Request headers you wish to allow
     res.setHeader(
       "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
       "X-Requested-With,content-type"
     );
   
     // Pass to next layer of middleware
     next();
   });
+
+  app.use((req, res, next) => {
+    const authHeader = req.header("Authorization");
+    if (authHeader) {
+        const token = authHeader.split(" ")[1];
+        req.user = jwt.verify(token, JWT_SECRET);
+    }
+    next();
+});
 
 
 app.get('/', async (req, res) => {
@@ -55,23 +66,24 @@ app.post("/users", async (req, res) => {
   res.json({username})
 })
 
-//Log-in
-// app.post("/tokens", async (req, res) => {
-//   const {username, password} = req.body
-//   const user = await User.login(username, password)
-//     if(user) {
-//       const userId = user._id.toString()
-//       const token = jwt.sign(
-//         {userId, username: user.username},
-//         JWT_SECRET,
-//         {expiresIn: 120, subject: userId}
-//       )
-//       res.json({token})
-//     } else {
-//       res.sendStatus(401)
-//     }
-// } )
-
+//log-in
+app.post("/auth", async (req, res) => {
+  const {username, password} = req.body
+  const user = await User.login(username, password)
+  console.log(username)
+    if(user) {
+      const userId = user._id.toString()
+      const token = jwt.sign(
+        {userId, username: user.username},
+        JWT_SECRET,
+        {expiresIn: 120, subject: userId}
+      )
+      console.log(token)
+      res.json({token})
+    } else {
+      res.sendStatus(401)
+    }
+} )
 
 //user-profile
 app.get("/profile/:userId", async (req, res) => {
@@ -80,11 +92,17 @@ app.get("/profile/:userId", async (req, res) => {
     res.send(user.username);
 });
 
-
 // create post
-app.get("/post", (req, res) => {
-    res.render("post.ejs")
-});
+app.post("/message", async (req, res) => {
+  const {title, body} = req.body
+  const message = new Message({title, body})
+  await message.save()
+  console.log(req.user)
+  res.json({title, body})
+  
+})
+
+
 
 
 //connect to database

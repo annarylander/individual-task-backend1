@@ -16,23 +16,25 @@ body {
 }
 
 .container {
-  max-width: 768px;
+
   margin: auto;
   padding: 0 20px;
 }
 
 .header {
   height: 70px;
-  width: 100%;
+  width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 30px;
   color: violet;
+  background-color: rgba(0,0,0,0.4);
 }
 
 
 button {
+
   border-radius: 50px ;
   font-size: 12px;
   border: none;
@@ -45,6 +47,15 @@ button {
 .user-create {
   display: flex;
   flex-direction: column;
-  
-  
+  align-items: center;
+}
+
+form {
+ 
+
+}
+
+form input {
+
+  font-size: 14px;
 }

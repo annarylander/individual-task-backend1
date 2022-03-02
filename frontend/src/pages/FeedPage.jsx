@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from "react"
 
-
-export default function Profile() {
+export default function FeedPage() {
 
     const [user, setUser] = useState([])
 
@@ -16,8 +15,8 @@ export default function Profile() {
     }, [])
 
   return (
-    <div>
-        <h2>People</h2>
+    <div className="user-create">
+        <h2>Who to follow</h2>
 
         {user &&
         user.map((item, index) => {

@@ -8,6 +8,16 @@ const app = express()
 const PORT = 8000;
 const JWT_SECRET = "jksjfkafld"
 
+
+// app.use((req, res, next) => {
+//   const authHeader = req.header("Authorization");
+//   if (authHeader) {
+//       const token = authHeader.split(" ")[1];
+//       req.user = jwt.verify(token, JWT_SECRET);
+//   }
+//   next();
+// });
+
 // app.use(express.urlencoded());
 app.use(express.json());
 
@@ -53,10 +63,11 @@ app.post("/users", async (req, res) => {
   const user = new User({username, password})
   await user.save()
   res.json({username})
+  console.log(username)
 })
 
 //Log-in
-// app.post("/tokens", async (req, res) => {
+// app.post("/auth", async (req, res) => {
 //   const {username, password} = req.body
 //   const user = await User.login(username, password)
 //     if(user) {
@@ -67,6 +78,7 @@ app.post("/users", async (req, res) => {
 //         {expiresIn: 120, subject: userId}
 //       )
 //       res.json({token})
+//       console.log(token)
 //     } else {
 //       res.sendStatus(401)
 //     }
@@ -83,7 +95,11 @@ app.get("/profile/:userId", async (req, res) => {
 
 // create post
 app.get("/post", (req, res) => {
-    res.render("post.ejs")
+   if(req.user) {
+     res.json({message: `Whats on your mind %${req.user}`})
+   } else {
+     res.sendStatus(401)
+   }
 });
 
 

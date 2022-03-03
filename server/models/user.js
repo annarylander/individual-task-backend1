@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     password: {type: String, required: true},
 })
 
+
 userSchema.pre(
     "save",
     async function(next) {
@@ -25,5 +26,6 @@ userSchema.statics.login = async function(username, password) {
 }
 
 const User = mongoose.model("User", userSchema)
+
 
 exports.User = User

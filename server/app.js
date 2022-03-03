@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const { User } = require("./models/user")
-const { Message } = require("./models/message")
+const { Blog } = require("./models/blog")
 const jwt = require("jsonwebtoken");
 
 const app = express()
@@ -33,6 +33,7 @@ app.use(function (req, res, next) {
     next();
   });
 
+  //middleware to authorize user
   app.use((req, res, next) => {
     const authHeader = req.header("Authorization");
     if (authHeader) {
@@ -42,20 +43,31 @@ app.use(function (req, res, next) {
     next();
 });
 
-
+//delete this later
 app.get('/', async (req, res) => {
        const users = await User.find().exec()
        res.render("index.ejs", { users })
    })
 
 
+//see all users
 app.get("/people", (req, res) => {
-     User.find({}, function (err, users) {
+     User.find({}.sort({date: -1}), function (err, users) {
        if (err) return handleError(err);
        res.send({users
        });
      });
    });
+
+
+//see all posts
+app.get("/feed", (req, res) => {
+  Blog.find({}, function (err, blogs) {
+    if (err) return handleError(err);
+    res.send({blogs
+    });
+  });
+});
 
 
 //create account
@@ -76,7 +88,7 @@ app.post("/auth", async (req, res) => {
       const token = jwt.sign(
         {userId, username: user.username},
         JWT_SECRET,
-        {expiresIn: 120, subject: userId}
+        {expiresIn: 1200, subject: userId}
       )
       console.log(token)
       res.json({token})
@@ -93,16 +105,18 @@ app.get("/profile/:userId", async (req, res) => {
 });
 
 // create post
-app.post("/message", async (req, res) => {
-  const {title, body} = req.body
-  const message = new Message({title, body})
-  await message.save()
+app.post("/blog", async (req, res) => {
+  const body = req.body.body
+  const postedByID = req.user.userId
+  const postedByName = req.user.username
   console.log(req.user)
-  res.json({title, body})
-  
+  const blog = new Blog({body, postedByID, postedByName})
+  await blog.save()
+  console.log(postedByName)
+  res.json({body, postedByID, postedByName})  
 })
 
-
+//routes
 
 
 //connect to database

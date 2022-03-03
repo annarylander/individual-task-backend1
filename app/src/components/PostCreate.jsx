@@ -1,15 +1,15 @@
 import React, {useState} from 'react'
 
+
 export default function PostCreate() {
 
-    const [title, setTitle] = useState("");
     const [body, setBody] = useState("");
-    const [message, setMessage] = useState("")
+    
     
     function handleOnSubmit(e) {
         e.preventDefault()
-        const payload = {title, body}
-        const url = "http://localhost:8000/message"
+        const payload = {body}
+        const url = "http://localhost:8000/blog"
         const token = localStorage.getItem("token")
         console.log(payload)
     
@@ -25,20 +25,17 @@ export default function PostCreate() {
 
   return (
     <div>
-        <h2>Skriv något:</h2>
+        
         <form onSubmit={handleOnSubmit}> 
-            <input
-                type="text"
-                placeholder="titel "
-                value= {title}
-                onChange={(e) => setTitle(e.target.value)}
-        />
-                    <input
+      
+        <label>Whats on your mind?</label>
+        
+                    <textarea
                 type="text"
                 placeholder="Skriv något"
                 value= {body}
-                onChange={(e) => setBody(e.target.value)}
-        />
+                onChange={(e) => setBody(e.target.value)}>
+                </textarea>
         <button type="submit">Skicka</button>
          </form>
     </div>

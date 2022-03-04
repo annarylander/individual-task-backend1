@@ -43,6 +43,24 @@ app.use(function (req, res, next) {
     next();
 });
 
+//handle errors
+const handleErrors = (err) => {
+  console.log(err.message, err.code)
+  let errors = {username: '', password:''}
+
+  if (err.code === 11000) {
+      errors.username = 'user already exists'
+      return errors
+  }
+  
+  if (err.message.includes('user validation failed')) {
+      Object.values(err.errors).forEach(({properties}) => {
+          errors[properties.path] = properties.message 
+      })
+  }
+  return errors
+}
+
 //delete this later
 app.get('/', async (req, res) => {
        const users = await User.find().exec()
@@ -52,17 +70,23 @@ app.get('/', async (req, res) => {
 
 //see all users
 app.get("/people", (req, res) => {
-     User.find({}.sort({date: -1}), function (err, users) {
+     User.find({}, function (err, users) {
        if (err) return handleError(err);
        res.send({users
        });
      });
    });
 
+//user-profile
+app.get("/profile/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  const user = await User.findOne({_id: userId});
+  res.send(user.username);
+});
 
 //see all posts
 app.get("/feed", (req, res) => {
-  Blog.find({}, function (err, blogs) {
+  Blog.find({}, null, {sort: {published: -1}}, function (err, blogs) {
     if (err) return handleError(err);
     res.send({blogs
     });
@@ -73,9 +97,14 @@ app.get("/feed", (req, res) => {
 //create account
 app.post("/users", async (req, res) => {
   const {username, password} = req.body
-  const user = new User({username, password})
-  await user.save()
-  res.json({username})
+  try {
+    const user = await User.create({username, password})
+    res.status(201).json({username})
+}
+catch(err) {
+    const errors = handleErrors(err)
+    res.status(400).send({errors})
+}
 })
 
 //log-in
@@ -97,12 +126,7 @@ app.post("/auth", async (req, res) => {
     }
 } )
 
-//user-profile
-app.get("/profile/:userId", async (req, res) => {
-    const userId = req.params.userId;
-    const user = await User.findOne({_id: userId});
-    res.send(user.username);
-});
+
 
 // create post
 app.post("/blog", async (req, res) => {
@@ -116,7 +140,7 @@ app.post("/blog", async (req, res) => {
   res.json({body, postedByID, postedByName})  
 })
 
-//routes
+
 
 
 //connect to database

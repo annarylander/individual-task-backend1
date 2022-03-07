@@ -10,14 +10,34 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String, 
         required: [true, 'Please enter a password']
+    },
+
+    email: {
+        type: String,
+        required: false,
+        default: " "
+    },
+
+    fullname: {
+        type: String,
+        required: false,
+        default: " "
+    },
+
+    image: {
+        type: String,
+        required: false,
+        default: " "
     }
 })
 
 userSchema.pre(
     "save",
     async function(next) {
-        const hash = await bcrypt.hash(this.password, 10);
-        this.password = hash;
+        if (this.modifiedPaths().includes("password")) {
+            const hash = await bcrypt.hash(this.password, 10);
+            this.password = hash;
+          }
         next();
     }
 );

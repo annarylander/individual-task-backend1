@@ -7,23 +7,23 @@ export default function ProfilePageEdit() {
     // const [username, setUsername] = useState("")
     const [image, setImage] = useState("")
 
+    const formData = new FormData()
+        formData.append("email", email )
+        formData.append("fullname", fullname )
+        formData.append("image", image)
+
 
     function updateUser(e) {
         e.preventDefault()
-        console.log("test")
+        console.log("test uppdaterar")
         
         const url = "http://localhost:8000/profile"
         const token = localStorage.getItem("token")
        
-        const formData = new FormData()
-    formData.append("email", email )
-    formData.append("fullname", fullname )
-    formData.append("image", image)
-    
         fetch(url, {
             method: "POST",
             headers: {
-                // "Content-Type": "multipart/form-data",
+                "Content-Type": "multipart/form-data",
                 Authorization: `Bearer ${token}`,
             },
             body: formData,
@@ -31,8 +31,6 @@ export default function ProfilePageEdit() {
         .then(res => console.log(res))
     }
 
-    
-   
 
   return (
     <div className='user-create'>

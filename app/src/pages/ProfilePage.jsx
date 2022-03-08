@@ -21,7 +21,6 @@ export default function ProfilePage() {
     
 }, [])
 
-console.log(details)
 
   return (
 

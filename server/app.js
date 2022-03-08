@@ -14,7 +14,7 @@ const JWT_SECRET = "jksjfkafld";
 // app.use(express.urlencoded());
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.json());
-app.use(express.static("/uploads"));
+app.use('/uploads', express.static('./uploads'));
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -79,7 +79,9 @@ app.get("/feed", (req, res) => {
   Blog.find({}, null, { sort: { published: -1 } }, function (err, blogs) {
     if (err) return handleError(err);
     res.send({ blogs });
+    console.log({blogs})
   });
+  
 });
 
 //create account
@@ -117,8 +119,9 @@ app.post("/blog", async (req, res) => {
   const body = req.body.body;
   const postedByID = req.user.userId;
   const postedByName = req.user.username;
+  const postedByImage = req.user.image
   //console.log(req.user)
-  const blog = new Blog({ body, postedByID, postedByName });
+  const blog = new Blog({ body, postedByID, postedByName, postedByImage });
   await blog.save();
   //console.log(postedByName)
   console.log(body);
@@ -128,10 +131,9 @@ app.post("/blog", async (req, res) => {
 //user-profile
 app.get("/profile", async (req, res) => {
   const user = await User.findOne({ _id: req.user.userId });
-  user.image = req.user.image
   res.send(user);
   console.log("user", user);
-  console.log(user.image)
+  
 });
 
 //update profile
@@ -154,7 +156,7 @@ app.get("/profile", async (req, res) => {
 // });
 
 
-//multer file upload
+//Update profile-info and image
 const storage = multer.diskStorage({
   destination: "./uploads"
   ,

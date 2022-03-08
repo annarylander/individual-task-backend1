@@ -1,147 +1,189 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const { User } = require("./models/user")
-const { Blog } = require("./models/blog")
+const { User } = require("./models/user");
+const { Blog } = require("./models/blog");
 const jwt = require("jsonwebtoken");
-
-const app = express()
+const multer = require("multer");
+const fs = require("fs")
+const path = require("path")
+const app = express();
 const PORT = 8000;
-const JWT_SECRET = "jksjfkafld"
+const JWT_SECRET = "jksjfkafld";
 
 // app.use(express.urlencoded());
+app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.json());
+app.use(express.static("/uploads"));
 
 app.use(function (req, res, next) {
-    // Website you wish to allow to connect
-    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-  
-    // Request methods you wish to allow
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-  
-    // Request headers you wish to allow
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-      "X-Requested-With,content-type"
-    );
-  
-    // Pass to next layer of middleware
-    next();
-  });
+  // Website you wish to allow to connect
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
 
-  //middleware to authorize user
-  app.use((req, res, next) => {
-    const authHeader = req.header("Authorization");
-    if (authHeader) {
-        const token = authHeader.split(" ")[1];
-        req.user = jwt.verify(token, JWT_SECRET);
-    }
-    next();
+  // Request methods you wish to allow
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+
+  // Request headers you wish to allow
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+    "X-Requested-With,content-type"
+  );
+
+  // Pass to next layer of middleware
+  next();
+});
+
+//middleware to authorize user
+app.use((req, res, next) => {
+  const authHeader = req.header("Authorization");
+  console.log("middleware verify jwt token");
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    req.user = jwt.verify(token, JWT_SECRET);
+    console.log(" rylle inloggad");
+    console.log("verified token", req.user);
+  } else {
+    console.log("skicka hem rylle");
+  }
+  next();
 });
 
 //handle errors
 const handleErrors = (err) => {
-  console.log(err.message, err.code)
-  let errors = {username: '', password:''}
+  console.log(err.message, err.code);
+  let errors = { username: "", password: "" };
 
-  if (err.code === 11000) {
-      errors.username = 'user already exists'
-      return errors
+  //validation error
+  if (err.message.includes("user validation failed")) {
+    Object.values(err.errors).forEach(({ properties }) => {
+      errors[properties.path] = properties.message;
+    });
   }
-  
-  if (err.message.includes('user validation failed')) {
-      Object.values(err.errors).forEach(({properties}) => {
-          errors[properties.path] = properties.message 
-      })
-  }
-  return errors
-}
-
-//delete this later
-app.get('/', async (req, res) => {
-       const users = await User.find().exec()
-       res.render("index.ejs", { users })
-   })
-
+  return errors;
+};
 
 //see all users
 app.get("/people", (req, res) => {
-     User.find({}, function (err, users) {
-       if (err) return handleError(err);
-       res.send({users
-       });
-     });
-   });
-
-//user-profile
-app.get("/profile/:userId", async (req, res) => {
-  const userId = req.params.userId;
-  const user = await User.findOne({_id: userId});
-  res.send(user.username);
+  User.find({}, function (err, users) {
+    if (err) return handleError(err);
+    res.send({ users });
+  });
 });
 
 //see all posts
 app.get("/feed", (req, res) => {
-  Blog.find({}, null, {sort: {published: -1}}, function (err, blogs) {
+  Blog.find({}, null, { sort: { published: -1 } }, function (err, blogs) {
     if (err) return handleError(err);
-    res.send({blogs
-    });
+    res.send({ blogs });
   });
 });
 
-
 //create account
 app.post("/users", async (req, res) => {
-  const {username, password} = req.body
+  const { username, password } = req.body;
   try {
-    const user = await User.create({username, password})
-    res.status(201).json({username})
-}
-catch(err) {
-    const errors = handleErrors(err)
-    res.status(400).send({errors})
-}
-})
+    const user = await User.create({ username, password });
+    res.status(201).json({ username });
+  } catch (err) {
+    const errors = handleErrors(err);
+    res.status(400).send({ errors });
+  }
+});
 
 //log-in
 app.post("/auth", async (req, res) => {
-  const {username, password} = req.body
-  const user = await User.login(username, password)
-  console.log(username)
-    if(user) {
-      const userId = user._id.toString()
-      const token = jwt.sign(
-        {userId, username: user.username},
-        JWT_SECRET,
-        {expiresIn: 1200, subject: userId}
-      )
-      console.log(token)
-      res.json({token})
-    } else {
-      res.sendStatus(401)
-    }
-} )
-
-
+  const { username, password } = req.body;
+  const user = await User.login(username, password);
+  console.log(username);
+  if (user) {
+    const userId = user._id.toString();
+    const token = jwt.sign({ userId, username: user.username }, JWT_SECRET, {
+      expiresIn: 12000,
+      subject: userId,
+    });
+    console.log(token);
+    res.json({ token });
+  } else {
+    res.sendStatus(401);
+  }
+});
 
 // create post
 app.post("/blog", async (req, res) => {
-  const body = req.body.body
-  const postedByID = req.user.userId
-  const postedByName = req.user.username
-  console.log(req.user)
-  const blog = new Blog({body, postedByID, postedByName})
-  await blog.save()
-  console.log(postedByName)
-  res.json({body, postedByID, postedByName})  
-})
+  const body = req.body.body;
+  const postedByID = req.user.userId;
+  const postedByName = req.user.username;
+  //console.log(req.user)
+  const blog = new Blog({ body, postedByID, postedByName });
+  await blog.save();
+  //console.log(postedByName)
+  console.log(body);
+  res.sendStatus(200);
+});
+
+//user-profile
+app.get("/profile", async (req, res) => {
+  const user = await User.findOne({ _id: req.user.userId });
+  user.image = req.user.image
+  res.send(user);
+  console.log("user", user);
+  console.log(user.image)
+});
+
+//update profile
+// app.post("/profile", async (req, res) => {
+//   const updatedUser = {
+//     email: req.body.email,
+//     fullname: req.body.fullname,
+//     image: req.body.image,
+//   };
+
+//   console.log(req.body)
+
+//   const user = await User.updateOne(
+//     { _id: req.user.userId },
+//     {
+//       $set: updatedUser,
+//     }
+//   );
+//   res.json({ message: "Success" });
+// });
 
 
+//multer file upload
+const storage = multer.diskStorage({
+  destination: "./uploads"
+  ,
+  filename: (req, file, cb) => {
+      cb(null, `${req.user.username}-profile.${file.originalname.split(".").slice(-1)[0]}`
+      )}
+});
 
+const upload = multer({ storage: storage });
+
+app.post('/profile', upload.single('image'), async (req, res, next) => {
+   
+  const updatedUser = {
+      fullname: req.body.fullname,
+      email: req.body.email,
+      image: `http://localhost:8000/uploads/${req.file.filename}`
+      
+  }
+
+  console.log(req.file)
+  console.log(updatedUser)
+
+  const user = await User.updateOne(
+        { _id: req.user.userId },
+        {
+          $set: updatedUser,
+        }
+      );
+});
 
 //connect to database
 mongoose.connect("mongodb://localhost/micro-blog");

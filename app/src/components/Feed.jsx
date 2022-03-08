@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react"
-
+import { Link } from "react-router-dom";
 
 export default function Feed() {
 
@@ -7,8 +7,14 @@ export default function Feed() {
 
     useEffect(() => {
         const url = "http://localhost:8000/feed";
+        const token = localStorage.getItem("token")
 
-        fetch(url)
+        fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        }})
+        
         .then((res) => res.json())
         .then((data) => setBlog(data.blogs))
         
@@ -16,14 +22,15 @@ export default function Feed() {
     }, [])
 
   return (
-    <div className="container">
+    
+    <div className="user-create">
         <h2>Feed</h2>
 
         {blog &&
         blog.map((item, index) => {
-            return <div key={index}>
+            return <div className="card" key={index}>
                     <p>{item.body}</p>
-                    <p>By: {item.postedByName}</p>
+                    <Link to={"/profile"}>By: {item.postedByName}</Link>
                     <p>{item.published}</p>
                     <br></br>
             </div>

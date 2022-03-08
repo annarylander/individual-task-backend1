@@ -10,9 +10,9 @@ export default function Logout() {
         navigate("/");
     }
   return (
-    <div>
-        <button onClick={handleClick}>Log out</button>
-    </div>
+    <>
+        <button className='logout' onClick={handleClick}>Logga ut</button>
+    </>
     
   )
 }

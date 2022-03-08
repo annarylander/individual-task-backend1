@@ -5,12 +5,14 @@ import LandingPage from "./pages/LandingPage";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProfilePageEdit from "./pages/ProfilePageEdit";
+import Navbar from "./components/Navbar";
 
 
 function App() {
   return (
     <div className="App">
-    <Header />
+    {/* <Header /> */}
+    <Navbar/>
 
     <Routes>
         <Route path="/" element={<LandingPage/>} />

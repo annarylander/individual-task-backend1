@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react"
-import Logout from "../components/Logout";
+import { Link } from 'react-router-dom'
 import ProfilePageEdit from './ProfilePageEdit'
 
 export default function ProfilePage() {
@@ -21,19 +21,23 @@ export default function ProfilePage() {
     
 }, [])
 
+console.log(details)
 
   return (
+
     <div className="user-create">
+      <div className="card">
         <h2>Min profil</h2>
-        
+        <img src={details.image} alt="profilbild" height="80px"/>
         <p>Användarnamn: {details.username}</p>
         <p>Namn: {details.fullname}</p>
         <p>E-post: {details.email}</p>
+        </div>
 
         <br></br>
         <ProfilePageEdit />
-
-        <Logout />
+        <Link to={"/feed"}> <button>Tillbaka</button></Link>
+       
     </div>
   )
 }

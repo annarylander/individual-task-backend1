@@ -16,13 +16,13 @@ export default function Profile() {
     }, [])
 
   return (
-    <div>
+    <div className="container">
         <h2>People</h2>
 
         {user &&
         user.map((item, index) => {
             return <div key={index}>
-                    <p> Username: {item.username}</p>
+                    <p> {item.username}</p>
             </div>
         })}
     </div>

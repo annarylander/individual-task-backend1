@@ -31,17 +31,18 @@ export default function Login() {
 
   return (
     <div className='user-create' >
-        <h2> Logga in</h2>
+  
          <form onSubmit={handleOnSubmit} > 
+         <h2> Logga in</h2>
             <input
                 type="text"
-                placeholder="Name"
+                placeholder="Namn"
                 value= {username}
                 onChange={(e) => setUserName(e.target.value)}
         />
              <input
                 type="password"
-                placeholder="Password"
+                placeholder="Lösenord"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
         />

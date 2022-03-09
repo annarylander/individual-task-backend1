@@ -19,12 +19,17 @@ export default function ProfilePage() {
     .then((res) => res.json())
     .then((data) => setdetails(data))    
     
+    
 }, [])
+
 
 
   return (
 
+    
+
     <div className="user-create">
+     
       <div className="card">
         <h2>Min profil</h2>
         <img src={details.image} alt="profilbild" height="80px"/>
@@ -35,7 +40,7 @@ export default function ProfilePage() {
 
         <br></br>
         <ProfilePageEdit />
-        <Link to={"/feed"}> <button>Tillbaka</button></Link>
+        {/* <Link to={"/feed"}> <button>Tillbaka</button></Link> */}
        
     </div>
   )

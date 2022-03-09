@@ -15,6 +15,7 @@ const JWT_SECRET = "jksjfkafld";
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.json());
 app.use('/uploads', express.static('./uploads'));
+// app.use(express.static("/public/uploads"))
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -44,10 +45,10 @@ app.use((req, res, next) => {
   if (authHeader) {
     const token = authHeader.split(" ")[1];
     req.user = jwt.verify(token, JWT_SECRET);
-    console.log(" rylle inloggad");
+    console.log("inloggad");
     console.log("verified token", req.user);
   } else {
-    console.log("skicka hem rylle");
+    console.log("inte inloggad");
   }
   next();
 });
@@ -75,14 +76,22 @@ app.get("/people", (req, res) => {
 });
 
 //see all posts
-app.get("/feed", (req, res) => {
-  Blog.find({}, null, { sort: { published: -1 } }, function (err, blogs) {
-    if (err) return handleError(err);
-    res.send({ blogs });
-    console.log({blogs})
-  });
+// app.get("/feed", (req, res) => {
+//   Blog.find({}, null, { sort: { published: -1 } }, function (err, blogs) {
+//     if (err) return handleError(err);
+//     const blogsAuthor = blogs.populate("postedByID")
+//     res.send({ blogs });
+//     console.log({blogs})
+//   });
   
-});
+// });
+
+app.get("/feed", async (req, res) => {
+   const blogs = await Blog.find().populate("postedByID").sort({published: -1})
+   res.json(blogs)
+  // console.log(blogs)
+})
+
 
 //create account
 app.post("/users", async (req, res) => {
@@ -136,30 +145,10 @@ app.get("/profile", async (req, res) => {
   
 });
 
-//update profile
-// app.post("/profile", async (req, res) => {
-//   const updatedUser = {
-//     email: req.body.email,
-//     fullname: req.body.fullname,
-//     image: req.body.image,
-//   };
-
-//   console.log(req.body)
-
-//   const user = await User.updateOne(
-//     { _id: req.user.userId },
-//     {
-//       $set: updatedUser,
-//     }
-//   );
-//   res.json({ message: "Success" });
-// });
-
 
 //Update profile-info and image
 const storage = multer.diskStorage({
-  destination: "./uploads"
-  ,
+  destination: "./uploads",
   filename: (req, file, cb) => {
       cb(null, `${req.user.username}-profile.${file.originalname.split(".").slice(-1)[0]}`
       )}

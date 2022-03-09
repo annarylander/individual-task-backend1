@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from "react"
 import { Link } from "react-router-dom";
+import moment from "moment";
+
 
 export default function Feed() {
 
@@ -16,10 +18,13 @@ export default function Feed() {
         }})
         
         .then((res) => res.json())
-        .then((data) => setBlog(data.blogs))
+        .then((data) => setBlog(data))
+      
         
         
     }, [])
+
+   
 
   return (
     
@@ -29,9 +34,14 @@ export default function Feed() {
         {blog &&
         blog.map((item, index) => {
             return <div className="card" key={index}>
+                    <p>{item.postedByID.username}</p>
                     <p>{item.body}</p>
-                    <Link to={"/profile"}>By: {item.postedByName}</Link>
-                    <p>{item.published}</p>
+                    <p> {moment(item.published).fromNow()}</p>
+                    <img src={item.postedByID.image} alt="profilbild" height="40px"/>
+                    
+                    {/* <Link to={"/profile"}>By: {item.postedByName}</Link>
+                    
+                    <img src={item.postedByID.image} alt="profilbild" height="80px"/> */}
                     <br></br>
             </div>
         })}

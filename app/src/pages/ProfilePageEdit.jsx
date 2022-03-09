@@ -23,7 +23,7 @@ export default function ProfilePageEdit() {
         fetch(url, {
             method: "POST",
             headers: {
-                "Content-Type": "multipart/form-data",
+                // "Content-Type": "multipart/form-data",
                 Authorization: `Bearer ${token}`,
             },
             body: formData,

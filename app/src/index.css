@@ -28,17 +28,6 @@ body {
   margin-top: 10px;
 }
 
-.header {
-  height: 70px;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 30px;
-  color: #F56476;
-}
-
-
 button {
   border-radius: 50px ;
   font-size: 12px;
@@ -48,9 +37,7 @@ button {
   background-color: #F56476 ;
   color: #fff;
   margin-top: 20px;
-  
 }
-
 
 .user-create {
   display: flex;
@@ -110,9 +97,44 @@ input, textarea{
   padding: 30px 40px;
   margin: 20px 0;
   box-shadow: 1px 2px 3px rgba(0,0,0,0.1);
-  width: 360px;
+  width: 360px; 
+}
+
+.card-post {  
+  background-color: #fff;
+  color: #333;
+  border-radius: 15px;
+  padding: 20px 40px;
+  margin: 20px 0;
+  box-shadow: 1px 2px 3px rgba(0,0,0,0.1);
+  width: 360px; 
  
 }
+
+.card-image {
+  margin-right: 10px;
+}
+
+.timestamp {
+  font-size: small;
+}
+
+.username {
+  font-weight: 600;
+
+}
+
+.likes {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0px;
+}
+
+.icon {
+  cursor: pointer;
+  color: rgb(74, 74, 74)
+}
+
 
 .bloglist {
   display: flex;

@@ -68,29 +68,38 @@ const handleErrors = (err) => {
 };
 
 //see all users
-app.get("/people", (req, res) => {
+app.get("/users", (req, res) => {
   User.find({}, function (err, users) {
     if (err) return handleError(err);
-    res.send({ users });
+    res.json({users: users });
   });
 });
 
-//see all posts
-// app.get("/feed", (req, res) => {
-//   Blog.find({}, null, { sort: { published: -1 } }, function (err, blogs) {
-//     if (err) return handleError(err);
-//     const blogsAuthor = blogs.populate("postedByID")
-//     res.send({ blogs });
-//     console.log({blogs})
-//   });
+// see one user
+app.get("/users/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  const user = await User.findOne({_id: userId});
+  res.json(user);
   
-// });
+});
 
-app.get("/feed", async (req, res) => {
+// see all posts
+app.get("/blog", async (req, res) => {
    const blogs = await Blog.find().populate("postedByID").sort({published: -1})
-   res.json(blogs)
+   res.json({blogs: blogs})
   // console.log(blogs)
 })
+
+// see one post
+app.get("/blog/:blogId", async (req, res) => {
+  const blogId = req.params.blogId;
+  const blog = await Blog.findOne({_id: blogId});
+  res.json(blog);
+  console.log(blog)
+
+});
+
+
 
 
 //create account
@@ -142,8 +151,8 @@ app.get("/profile", async (req, res) => {
   const user = await User.findOne({ _id: req.user.userId });
   res.send(user);
   console.log("user", user);
-  
 });
+
 
 
 //Update profile-info and image
@@ -158,19 +167,28 @@ const upload = multer({ storage: storage });
 
 app.post('/profile', upload.single('image'), async (req, res, next) => {
    
-  const updatedUser = {
-      fullname: req.body.fullname,
-      email: req.body.email,
-      image: `http://localhost:8000/uploads/${req.file.filename}`
+  let updatedUser = {}
+
+  if (req.body.fullname != "") {
+        updatedUser.fullname = req.body.fullname} 
+      else {console.log("något gick fel")}
+  
+  if (req.body.email != "") {
+    updatedUser.email = req.body.email
+  } else {console.log("något gick fel")}
+  
+  if (req.body.image != "") {
+    updatedUser.image = `http://localhost:8000/uploads/${req.file.filename}`
+  } else {console.log("något gick fel")}
       
-  }
+  
 
   console.log(req.file)
   console.log(updatedUser)
 
   const user = await User.updateOne(
         { _id: req.user.userId },
-        {
+        { 
           $set: updatedUser,
         }
       );

@@ -53,6 +53,14 @@ app.use((req, res, next) => {
   next();
 });
 
+const requireLogin = (req, res, next) => {
+  if (req.user) {
+    next()
+  } else {
+    res.sendStatus(401)
+  }
+}
+
 //handle errors
 const handleErrors = (err) => {
   console.log(err.message, err.code);
@@ -79,8 +87,10 @@ app.get("/users", (req, res) => {
 app.get("/users/:userId", async (req, res) => {
   const userId = req.params.userId;
   const user = await User.findOne({_id: userId});
-  res.json(user);
-  
+  const blog = await Blog.find({postedByID: userId}).populate("postedByID").sort({published: -1})
+  res.json({ 
+            blog: blog, 
+            user: user});  
 });
 
 // see all posts
@@ -95,11 +105,7 @@ app.get("/blog/:blogId", async (req, res) => {
   const blogId = req.params.blogId;
   const blog = await Blog.findOne({_id: blogId});
   res.json(blog);
-  console.log(blog)
-
 });
-
-
 
 
 //create account
@@ -118,14 +124,15 @@ app.post("/users", async (req, res) => {
 app.post("/auth", async (req, res) => {
   const { username, password } = req.body;
   const user = await User.login(username, password);
-  console.log(username);
+  // console.log(username);
   if (user) {
     const userId = user._id.toString();
+    //skicka in payload för att använda metoden sign och signerar med vår token
     const token = jwt.sign({ userId, username: user.username }, JWT_SECRET, {
-      expiresIn: 12000,
+      expiresIn: "1h",
       subject: userId,
     });
-    console.log(token);
+    // console.log(token);
     res.json({ token });
   } else {
     res.sendStatus(401);
@@ -138,12 +145,16 @@ app.post("/blog", async (req, res) => {
   const postedByID = req.user.userId;
   const postedByName = req.user.username;
   const postedByImage = req.user.image
-  //console.log(req.user)
   const blog = new Blog({ body, postedByID, postedByName, postedByImage });
   await blog.save();
+  //console.log(req.user)
+  if (blog) {
   //console.log(postedByName)
-  console.log(body);
-  res.sendStatus(200);
+  // console.log(body);
+  res.sendStatus(200)}
+  else { 
+    res.sendStatus(401)
+  }
 });
 
 //user-profile
@@ -181,10 +192,8 @@ app.post('/profile', upload.single('image'), async (req, res, next) => {
     updatedUser.image = `http://localhost:8000/uploads/${req.file.filename}`
   } else {console.log("något gick fel")}
       
-  
-
-  console.log(req.file)
-  console.log(updatedUser)
+  // console.log(req.file)
+  // console.log(updatedUser)
 
   const user = await User.updateOne(
         { _id: req.user.userId },
@@ -192,6 +201,12 @@ app.post('/profile', upload.single('image'), async (req, res, next) => {
           $set: updatedUser,
         }
       );
+});
+
+
+//secret
+app.get("/secret", requireLogin, (req, res) => {
+  res.json({message: `Hello ${req.user.username}`});
 });
 
 //connect to database

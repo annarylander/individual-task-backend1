@@ -5,8 +5,8 @@ const { User } = require("./models/user");
 const { Blog } = require("./models/blog");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-const fs = require("fs")
-const path = require("path")
+// const fs = require("fs")
+// const path = require("path")
 const app = express();
 const PORT = 8000;
 const JWT_SECRET = "jksjfkafld";
@@ -39,27 +39,41 @@ app.use(function (req, res, next) {
 });
 
 //middleware to authorize user
-app.use((req, res, next) => {
-  const authHeader = req.header("Authorization");
-  console.log("middleware verify jwt token");
+// app.use((req, res, next) => {
+//   const authHeader = req.header("Authorization");
+//   console.log("middleware verify jwt token");
+//   if (authHeader) {
+//     const token = authHeader.split(" ")[1];
+//     req.user = jwt.verify(token, JWT_SECRET);
+//     console.log("inloggad");
+//     console.log("verified token", req.user);
+//   } else {
+//     console.log("inte inloggad");
+//   }
+//   next();
+// });
+
+// const requireLogin = (req, res, next) => {
+//   if (req.user) {
+//     next()
+//   } else {
+//     res.sendStatus(401)
+//   }
+// }
+
+
+const requireLogin = (req, res, next) => {
+  const authHeader = req.header("Authorization")
   if (authHeader) {
     const token = authHeader.split(" ")[1];
     req.user = jwt.verify(token, JWT_SECRET);
-    console.log("inloggad");
-    console.log("verified token", req.user);
-  } else {
-    console.log("inte inloggad");
-  }
-  next();
-});
-
-const requireLogin = (req, res, next) => {
-  if (req.user) {
-    next()
-  } else {
-    res.sendStatus(401)
-  }
+    console.log("inloggad")
+} else {
+  res.sendStatus(401)
 }
+next()
+}
+
 
 //handle errors
 const handleErrors = (err) => {
@@ -86,6 +100,7 @@ app.get("/users", (req, res) => {
 // see one user
 app.get("/users/:userId", async (req, res) => {
   const userId = req.params.userId;
+  console.log(userId)
   const user = await User.findOne({_id: userId});
   const blog = await Blog.find({postedByID: userId}).populate("postedByID").sort({published: -1})
   res.json({ 
@@ -100,7 +115,7 @@ app.get("/blog", async (req, res) => {
   // console.log(blogs)
 })
 
-// see one post
+// see one post, kan tas bort 
 app.get("/blog/:blogId", async (req, res) => {
   const blogId = req.params.blogId;
   const blog = await Blog.findOne({_id: blogId});
@@ -132,7 +147,7 @@ app.post("/auth", async (req, res) => {
       expiresIn: "1h",
       subject: userId,
     });
-    // console.log(token);
+    console.log(userId);
     res.json({ token });
   } else {
     res.sendStatus(401);
@@ -140,30 +155,27 @@ app.post("/auth", async (req, res) => {
 });
 
 // create post
-app.post("/blog", async (req, res) => {
+app.post("/blog", requireLogin, async (req, res) => {
   const body = req.body.body;
   const postedByID = req.user.userId;
   const postedByName = req.user.username;
   const postedByImage = req.user.image
-  const blog = new Blog({ body, postedByID, postedByName, postedByImage });
-  await blog.save();
-  //console.log(req.user)
-  if (blog) {
-  //console.log(postedByName)
-  // console.log(body);
-  res.sendStatus(200)}
-  else { 
-    res.sendStatus(401)
+  try {
+    const blog = await Blog.create({ body, postedByID, postedByName, postedByImage });
+  res.status(201).json({ blog });
+  } catch (err) {
+    const errors = handleErrors(err);
+    res.status(400).send({ errors });
   }
 });
 
+
 //user-profile
-app.get("/profile", async (req, res) => {
+app.get("/profile", requireLogin, async (req, res) => {
   const user = await User.findOne({ _id: req.user.userId });
   res.send(user);
   console.log("user", user);
 });
-
 
 
 //Update profile-info and image
@@ -176,7 +188,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/profile', upload.single('image'), async (req, res, next) => {
+app.post('/profile', requireLogin, upload.single('image'), async (req, res, next) => {
    
   let updatedUser = {}
 
@@ -204,10 +216,28 @@ app.post('/profile', upload.single('image'), async (req, res, next) => {
 });
 
 
-//secret
-app.get("/secret", requireLogin, (req, res) => {
-  res.json({message: `Hello ${req.user.username}`});
-});
+//follow a user
+app.post('/users/:userId/follow', requireLogin, async (req,res)=>{
+  const followedUser = req.params.userId;
+  const user = await User.updateOne(
+    { _id: req.user.userId }, // kollar om det är den inloggade användaren
+    { 
+       $push: { following: followedUser }  // lägg till i followers-arrayn i userobjektet
+    }
+  );
+})
+
+app.post('/users/:userId/unfollow', requireLogin, async (req,res)=>{
+  const followedUser = req.params.userId;
+  const user = await User.updateOne(
+    { _id: req.user.userId }, 
+    { 
+       $pull: { following: followedUser }  
+    }
+  );
+})
+
+
 
 //connect to database
 mongoose.connect("mongodb://localhost/micro-blog");

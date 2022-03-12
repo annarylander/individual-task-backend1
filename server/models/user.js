@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const {ObjectId} = mongoose.Schema.Types
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -21,15 +22,29 @@ const userSchema = new mongoose.Schema({
     fullname: {
         type: String,
         required: false,
-        default: " "
+        
     },
 
     image: {
         type: String,
         required: false,
         default: "",
+    },
 
-    }
+    followers: [
+        {
+            type:ObjectId,
+            ref:"User"
+        }
+        ],
+
+    following:  [
+        {
+            type:ObjectId,
+            ref:"User"
+        }
+        ]
+    
 })
 
 userSchema.pre(
@@ -43,9 +58,10 @@ userSchema.pre(
     }
 );
 
+//metod som loggar in användare 
 userSchema.statics.login = async function(username, password) {
-    const user = await this.findOne({username})
-    if (user && await bcrypt.compare(password, user.password)) {
+    const user = await this.findOne({username}) // kollar om det finns en användare med det namnet
+    if (user && await bcrypt.compare(password, user.password)) { // kollar om lösen stämmer med det i db
         return user
     } else {
         return null

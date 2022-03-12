@@ -1,28 +1,26 @@
 import React from "react"
-import Header from "./components/Header";
 import { Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
-import FeedPage from "./pages/FeedPage";
+import BlogPage from "./pages/BlogPage";
 import ProfilePage from "./pages/ProfilePage";
-import ProfilePageEdit from "./pages/ProfilePageEdit";
 import Navbar from "./components/Navbar";
+import ProfileDetail from "./components/ProfileDetail";
+import BlogDetail from "./components/BlogDetail";
+import UserPage from "./pages/UserPage";
 
 
 function App() {
   return (
     <div className="App">
-    {/* <Header /> */}
     <Navbar/>
-
     <Routes>
         <Route path="/" element={<LandingPage/>} />
-        <Route path="/feed" element={<FeedPage />} />
-        <Route path="/profile-edit" element={<ProfilePageEdit />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:_id" element={<BlogDetail />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/users" element={<UserPage />} />
+        <Route path="/users/:_id" element={<ProfileDetail />} />
     </Routes>
-      
-    
-  
     </div>
   );
 }

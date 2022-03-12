@@ -1,43 +1,38 @@
-import React, {useState} from 'react'
-
+import React, { useState } from "react";
 
 export default function PostCreate() {
+  const [body, setBody] = useState("");
 
-    const [body, setBody] = useState("");
-    
-    
-    function handleOnSubmit(e) {
-        e.preventDefault()
-        const payload = {body}
-        const url = "http://localhost:8000/blog"
-        const token = localStorage.getItem("token")
-        console.log(payload)
-    
-        fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-        })
-    }
+  function handleOnSubmit(e) {
+    e.preventDefault();
+    const payload = { body };
+    const url = "http://localhost:8000/blog";
+    const token = localStorage.getItem("token");
+    console.log(payload);
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  }
 
   return (
     <div>
-        
-        <form onSubmit={handleOnSubmit}> 
-      
+      <form onSubmit={handleOnSubmit}>
         <label>Whats on your mind?</label>
-        
-                    <textarea
-                type="text"
-                placeholder="Skriv något"
-                value= {body}
-                onChange={(e) => setBody(e.target.value)}>
-                </textarea>
+
+        <textarea
+          type="text"
+          placeholder="Skriv något"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        ></textarea>
         <button type="submit">Skicka</button>
-         </form>
+      </form>
     </div>
-  )
+  );
 }

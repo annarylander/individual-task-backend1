@@ -7,11 +7,6 @@ const blogSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    postedByName: {
-        type: String,
-        required: true
-    }
-    
 })
 
 const Blog = mongoose.model("Blog", blogSchema)

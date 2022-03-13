@@ -2,9 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 export default function Profile(props) {
-
-  const user = props.user
-  
+  const user = props.user;
 
   return (
     <div className="container">

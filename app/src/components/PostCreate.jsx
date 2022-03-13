@@ -8,7 +8,6 @@ export default function PostCreate() {
     const payload = { body };
     const url = "http://localhost:8000/blog";
     const token = localStorage.getItem("token");
-    console.log(payload);
 
     fetch(url, {
       method: "POST",

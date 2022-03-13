@@ -12,18 +12,15 @@ export default function ProfileEdit() {
 
   function updateUser(e) {
     e.preventDefault();
-    console.log("test uppdaterar");
-
     const url = "http://localhost:8000/profile";
     const token = localStorage.getItem("token");
-
     fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
       body: formData,
-    }).then((res) => console.log(res));
+    })
   }
 
   return (
@@ -33,7 +30,6 @@ export default function ProfileEdit() {
         <label>Namn</label>
         <input
           type="text"
-          // value= {fullname}
           placeholder="Full name"
           onChange={(e) => setFullname(e.target.value)}
         ></input>
@@ -41,7 +37,6 @@ export default function ProfileEdit() {
         <label>Email</label>
         <input
           type="text"
-          // value= {email}
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
         ></input>
@@ -49,8 +44,6 @@ export default function ProfileEdit() {
         <label>Profilbild</label>
         <input
           type="file"
-          // value= {image}
-          // accept="image/*"
           onChange={(e) => setImage(e.target.files[0])}
         ></input>
 

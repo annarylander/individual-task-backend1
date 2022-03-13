@@ -10,19 +10,15 @@ export default function ProfileDetail() {
 
   useEffect(() => {
     const url = `http://localhost:8000/users/${_id}`;
-
     fetch(url)
       .then((res) => res.json())
-      .then((data) => setData(data))
-      
+      .then((data) => setData(data));
   }, []);
-
 
   return (
     <div className="user-create">
       {data && (
         <div>
-          <h2>Profil</h2>
           <UserProfile user={data.user} />
         </div>
       )}

@@ -35,7 +35,7 @@ app.use(function (req, res, next) {
   next();
 });
 
-//middleware
+
 const requireLogin = (req, res, next) => {
   const authHeader = req.header("Authorization")
   

@@ -11,9 +11,9 @@ const app = express();
 const PORT = 8000;
 const JWT_SECRET = "jksjfkafld";
 
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/uploads', express.static('./uploads'));
+app.use("/uploads", express.static("./uploads"));
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -35,20 +35,18 @@ app.use(function (req, res, next) {
   next();
 });
 
-
 const requireLogin = (req, res, next) => {
-  const authHeader = req.header("Authorization")
-  
+  const authHeader = req.header("Authorization");
+
   try {
-      const token = authHeader.split(" ")[1];
-      req.user = jwt.verify(token, JWT_SECRET);
-      console.log("inloggad")
-      next()
+    const token = authHeader.split(" ")[1];
+    req.user = jwt.verify(token, JWT_SECRET);
+    console.log("inloggad");
+    next();
+  } catch {
+    res.status(401);
   }
-  catch {
-    res.status(401)
-  }
-}
+};
 
 //handle errors
 const handleErrors = (err) => {
@@ -87,39 +85,47 @@ app.post("/auth", async (req, res) => {
 app.get("/users", (req, res) => {
   User.find({}, function (err, users) {
     if (err) return handleError(err);
-    res.json({users: users });
+    res.json({ users: users });
   });
 });
 
-// one user
+// one user w blogs
 app.get("/users/:userId", async (req, res) => {
   const userId = req.params.userId;
-  const user = await User.findOne({_id: userId});
-  const blog = await Blog.find({postedByID: userId}).populate("postedByID").sort({published: -1})
-  res.json({ 
-            blog: blog, 
-            user: user});  
+  const user = await User.findOne({ _id: userId });
+  const blog = await Blog.find({ postedByID: userId })
+    .populate("postedByID")
+    .sort({ published: -1 });
+  res.json({
+    blog: blog,
+    user: user,
+  });
 });
 
 // all posts
 app.get("/blog", async (req, res) => {
-    const authHeader = req.header("Authorization")
-    try {
-        const token = authHeader.split(" ")[1];
-        req.user = jwt.verify(token, JWT_SECRET);
-        const user = await User.findOne({_id: req.user.userId})
-        const blogs = await Blog.find({postedByID: {$in: user.following}}).populate("postedByID").sort({published: -1})
-        res.json({blogs: blogs})
-    }
-    catch {req.user = null
-      const blogs = await Blog.find().populate("postedByID").sort({published: -1})
-      res.json({blogs: blogs})}
-    })
+  const authHeader = req.header("Authorization");
+  try {
+    const token = authHeader.split(" ")[1];
+    req.user = jwt.verify(token, JWT_SECRET);
+    const user = await User.findOne({ _id: req.user.userId });
+    const blogs = await Blog.find({ postedByID: { $in: user.following } })
+      .populate("postedByID")
+      .sort({ published: -1 });
+    res.json({ blogs: blogs });
+  } catch {
+    req.user = null;
+    const blogs = await Blog.find()
+      .populate("postedByID")
+      .sort({ published: -1 });
+    res.json({ blogs: blogs });
+  }
+});
 
 // one post
 app.get("/blog/:blogId", async (req, res) => {
   const blogId = req.params.blogId;
-  const blog = await Blog.findOne({_id: blogId});
+  const blog = await Blog.findOne({ _id: blogId });
   res.json(blog);
 });
 
@@ -128,10 +134,15 @@ app.post("/blog", requireLogin, async (req, res) => {
   const body = req.body.body;
   const postedByID = req.user.userId;
   const postedByName = req.user.username;
-  const postedByImage = req.user.image
+  const postedByImage = req.user.image;
   try {
-    const blog = await Blog.create({ body, postedByID, postedByName, postedByImage });
-  res.status(201).json({ blog });
+    const blog = await Blog.create({
+      body,
+      postedByID,
+      postedByName,
+      postedByImage,
+    });
+    res.status(201).json({ blog });
   } catch (err) {
     handleErrors(err);
     res.status(400);
@@ -141,78 +152,87 @@ app.post("/blog", requireLogin, async (req, res) => {
 //user-profile
 app.get("/profile", requireLogin, async (req, res) => {
   const user = await User.findOne({ _id: req.user.userId });
-  res.send(user);
+  res.json(user);
 });
-
 
 //Update profile-info and image
 const storage = multer.diskStorage({
   destination: "./uploads",
   filename: (req, file, cb) => {
-      cb(null, `${req.user.username}-profile.${file.originalname.split(".").slice(-1)[0]}`
-      )}
+    cb(
+      null,
+      `${req.user.username}-profile.${
+        file.originalname.split(".").slice(-1)[0]
+      }`
+    );
+  },
 });
 
 const upload = multer({ storage: storage });
 
-app.post('/profile', requireLogin, upload.single('image'), async (req, res, next) => {
-   
-  let updatedUser = {}
+app.post(
+  "/profile",
+  requireLogin,
+  upload.single("image"),
+  async (req, res, next) => {
+    let updatedUser = {};
 
-  if (req.body.fullname != "") {
-        updatedUser.fullname = req.body.fullname} 
-     
-  
-  if (req.body.email != "") {
-    updatedUser.email = req.body.email} 
-  
-  if (req.body.image != "") {
-    updatedUser.image = `http://localhost:8000/uploads/${req.file.filename}`
+    if (req.body.fullname != "") {
+      updatedUser.fullname = req.body.fullname;
+    }
+
+    if (req.body.email != "") {
+      updatedUser.email = req.body.email;
+    }
+
+    if (req.body.image != "") {
+      updatedUser.image = `http://localhost:8000/uploads/${req.file.filename}`;
+    }
+
+    const user = await User.updateOne(
+      { _id: req.user.userId },
+      {
+        $set: updatedUser,
+      }
+    );
   }
-      
-  const user = await User.updateOne(
-        { _id: req.user.userId },
-        { 
-          $set: updatedUser,
-        }
-      );
-});
+);
 
 //follow a user
-app.post('/users/:userId/follow', requireLogin, async (req,res)=>{
+app.post("/users/:userId/follow", requireLogin, async (req, res) => {
   const followedUser = req.params.userId;
   await User.updateOne(
-    { _id: req.user.userId }, 
-    { 
-       $addToSet: { following: followedUser }   
+    { _id: req.user.userId },
+    {
+      $addToSet: { following: followedUser },
     }
   );
   await User.updateOne(
-    { _id: followedUser }, 
-    { 
-       $addToSet: { followers: req.user.userId } 
+    { _id: followedUser },
+    {
+      $addToSet: { followers: req.user.userId },
     }
   );
-  res.status(201)
-})
+  res.status(201);
+});
 
 //unfollow user
-app.post('/users/:userId/unfollow', requireLogin, async (req,res)=>{
+app.post("/users/:userId/unfollow", requireLogin, async (req, res) => {
   const followedUser = req.params.userId;
   await User.updateOne(
-    { _id: req.user.userId }, 
-    { 
-       $pull: { following: followedUser }  
+    { _id: req.user.userId },
+    {
+      $pull: { following: followedUser },
     }
   );
   await User.updateOne(
-    { _id: followedUser}, 
-    { 
-       $pull: { followers: req.user.userId }  
+    { _id: followedUser },
+    {
+      $pull: { followers: req.user.userId },
     }
   );
-  res.status(201)
-})
+  res.status(201);
+});
 
 //connect to database
 mongoose.connect("mongodb://localhost/micro-blog");
